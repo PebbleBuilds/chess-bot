@@ -14,8 +14,6 @@
 
 const int _CFG_CMD_VAL_PLACES = 4; //we need 4 places for our payload (1000 to 2000)
 
-
-
 typedef struct angle_set{
     int base_us = 0;
     int shoulder_us = 0;
@@ -99,15 +97,14 @@ void loop() {
 
     // if moving
     if(moving){
-        if(millis() % interval == 0){
-            base.write(queue[queue_cursor].base_us);
-            shoulder.write(queue[queue_cursor].shoulder_us);
-            elbow.write(queue[queue_cursor].elbow_us);
-            queue[queue_cursor].base_us = 0;
-            queue[queue_cursor].shoulder_us = 0;
-            queue[queue_cursor].elbow_us = 0;
-            queue_cursor++; 
-        }
+        base.write(queue[queue_cursor].base_us);
+        shoulder.write(queue[queue_cursor].shoulder_us);
+        elbow.write(queue[queue_cursor].elbow_us);
+        queue[queue_cursor].base_us = 0;
+        queue[queue_cursor].shoulder_us = 0;
+        queue[queue_cursor].elbow_us = 0;
+        queue_cursor++; 
+        delay(interval);
         if(queue_cursor >= _QUEUE_MAX){
             moving = false;
             queue_cursor = 0;
