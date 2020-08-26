@@ -10,33 +10,34 @@ import rospy, serial, sys, time
 from IK_lib import *
 from geometry_msgs.msg import Point
 
-CMD_SET_BASE = 1
-CMD_SET_SHOULDER = 2
-CMD_SET_ELBOW = 3
-CMD_SET_INTERVAL = 4
-CMD_GET_QUEUE_MAX = 5
-
-CFG_CMD_VAL_PLACES = 4
-
 class CheckMoving():
     def __init__(self, duration):
         self.duration = duration
         self.last_time = time.time() * 1000
 
-    def start_timing():
+    def start_timing(self):
         self.last_time = time.time() * 1000
 
-    def check_if_done():
-        if time.time() - self.last_time + 500 > duration:
+    def check_if_done(self):
+        if time.time() * 1000 - self.last_time + 500 > self.duration:
             return True
         return False
 
 class IK_Arm():
     def __init__(self, com_port=None, duration=3000):
-        self.init_pos = (0,50,50)
+        self.CMD_SET_BASE = 1
+        self.CMD_SET_SHOULDER = 2
+        self.CMD_SET_ELBOW = 3
+        self.CMD_SET_INTERVAL = 4
+        self.CMD_GET_QUEUE_MAX = 5
+
+        self.CFG_CMD_VAL_PLACES = 4
+
+        self.init_pos = [0.0,50.0,50.0]
         self.com_port = com_port
         self.duration = duration # in ms
-        self.moving_checker = CheckMoving(duration)
+        self.move_checker = CheckMoving(duration)
+        self.queue_max = 3
     
         self.d1 = 175 # (in mm)
         self.d2 = 175
@@ -45,7 +46,7 @@ class IK_Arm():
 
         if self.com_port is not None:
             self.ser = serial.Serial(com_port, 9800, timeout=1.0)
-            send_cmd(GET_QUEUE_MAX, 0)
+            send_cmd(self.GET_QUEUE_MAX, 0)
             try:
                 self.queue_max = int(self.ser.read(1))
             except:
@@ -54,52 +55,55 @@ class IK_Arm():
             print("WARNING: No com_port specified")
     
     def find_intermediate_positions(self, init_pos, final_pos):
-        curr_pos = init_pos
-        increments = init_pos
-        intermediate_positions = []
-    
+        curr_pos = list(init_pos)
+        increment = [0] * len(init_pos)
+        intermediate_positions = []    
         for idx in range(0, len(init_pos)):
-            increments[idx] = (final_pos[idx] - init_pos[idx]) / self.queue_max
-    
+            increment[idx] = (final_pos[idx] - init_pos[idx]) / float(self.queue_max)
         for n in range(0, self.queue_max):
             for idx in range(0, len(init_pos)):
-                curr_pos[idx] += increments[idx]
-            intermediate_positions.append(curr_pos)
-    
+                curr_pos[idx] += increment[idx]
+            intermediate_positions.append(list(curr_pos))    
         return intermediate_positions
 
     def send_cmd(self, cmd_id, cmd_val):
-        cmd_id_shift = 10**CFGCMD_VAL_PLACES 
-        if cmd_id_shift < val:
+        cmd_id_shift = 10**self.CFG_CMD_VAL_PLACES 
+        if cmd_id_shift < cmd_val:
             print("Invalid command value received")
             return None
-        cmd = cmd_id_shifted * cmd_id + val
-        print("cmd:",cmd)
-        if ser == None:
+        cmd = cmd_id_shift * cmd_id + cmd_val
+        print("[IK_Node] sending cmd: %d"%cmd)
+        if self.ser == None:
             return None
-        ser.write(cmd)
+        self.ser.write(cmd)
     
     def callback(self, received_point):
         rospy.loginfo(rospy.get_caller_id() + "I heard %f, %f, %f" %(received_point.x, received_point.y, received_point.z))
     
-        final_pos = (received_point.x, received_point.y, received_point.z)
+        final_pos = [received_point.x, received_point.y, received_point.z]
+
+        rospy.loginfo("[IK_Node]Moving from %r to %r"%(self.init_pos, final_pos))
     
         i_positions = self.find_intermediate_positions(self.init_pos, final_pos)
         i_us_list = []
     
         for pos in i_positions:
-            i_us_list.append(angles_to_us(cartesian_to_angles(pos)))
+            arm_angles = cartesian_to_angles(pos, self.d1, self.d2)
+            if arm_angles == None:
+                rospy.loginfo("[IK_Node] Impossible position")
+                return
+            i_us_list.append(angles_to_us(arm_angles))
     
-        if not move_checker.check_if_done():
-            print("Uh oh. The arm wasn't done moving. Try again.")
+        if not self.move_checker.check_if_done():
+            rospy.loginfo("[IK_Node] Arm was still moving - new move message ignored")
             return
     
         for pos in i_us_list:
-            send_cmd(CMD_SET_BASE, pos[0])
-            send_cmd(CMD_SET_SHOULDER, pos[1])
-            send_cmd(CMD_SET_ELBOW, pos[2])
+            self.send_cmd(self.CMD_SET_BASE, pos[0])
+            self.send_cmd(self.CMD_SET_SHOULDER, pos[1])
+            self.send_cmd(self.CMD_SET_ELBOW, pos[2])
         
-        move_checker.start_timing()
+        self.move_checker.start_timing()
         self.init_pos = final_pos
 
 #ROS stuff down here
