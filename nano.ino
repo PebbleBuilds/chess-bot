@@ -5,7 +5,7 @@
 #define _CMD_SET_INTERVAL 4
 #define _CMD_GET_QUEUE_MAX 5
 
-#define _QUEUE_MAX 50
+#define _QUEUE_MAX 1
 
 #define base_pin 9
 #define shoulder_pin 6
@@ -22,12 +22,11 @@ typedef struct angle_set{
 
 Servo base, shoulder, elbow, gripper;
 bool moving = false;
-int cmd, cmd_id, cmd_val;
+int cmd, cmd_id, cmd_val, cmd_key, i;
 int interval = 100; // in milliseconds
 
 angle_set queue[_QUEUE_MAX];
 int queue_cursor = 0;
-int cmd_key, i;
 
 void setup() {
     // put your setup code here, to run once
@@ -51,7 +50,7 @@ void loop() {
 
     // if waiting for command
     if((!moving) && Serial.available()){
-        cmd = int(Serial.parseInt()); // cmd will be stored in an int.
+        cmd = int(Serial.read()); // cmd will be stored in an int.
         cmd_id = cmd / cmd_key;
         cmd_val = cmd % cmd_key;
 
@@ -92,9 +91,9 @@ void loop() {
 
     // if moving
     if(moving){
-        base.write(queue[queue_cursor].base_us);
-        shoulder.write(queue[queue_cursor].shoulder_us);
-        elbow.write(queue[queue_cursor].elbow_us);
+        base.writeMicroseconds(queue[queue_cursor].base_us);
+        shoulder.writeMicroseconds(queue[queue_cursor].shoulder_us);
+        elbow.writeMicroseconds(queue[queue_cursor].elbow_us);
         queue[queue_cursor].base_us = 0;
         queue[queue_cursor].shoulder_us = 0;
         queue[queue_cursor].elbow_us = 0;
@@ -103,7 +102,6 @@ void loop() {
         if(queue_cursor >= _QUEUE_MAX){
             moving = false;
             queue_cursor = 0;
-            Serial.write("done");
         }
     }
 }
