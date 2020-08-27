@@ -3,14 +3,14 @@
 #define _CMD_SET_SHOULDER 2
 #define _CMD_SET_ELBOW 3
 #define _CMD_SET_INTERVAL 4
-#define _CMD_CHECK_MOVING 5
+#define _CMD_GET_QUEUE_MAX 5
 
 #define _QUEUE_MAX 50
 
-#define base_pin 3
-#define shoulder_pin 5
-#define elbow_pin 6
-#define gripper_pin 9
+#define base_pin 9
+#define shoulder_pin 6
+#define elbow_pin 5
+#define gripper_pin 3
 
 const int _CFG_CMD_VAL_PLACES = 4; //we need 4 places for our payload (1000 to 2000)
 
@@ -37,7 +37,7 @@ void setup() {
     gripper.attach(gripper_pin);
 
     base.writeMicroseconds(1500);
-    shoulder.writeMicroseconds(1500);
+    shoulder.writeMicroseconds(1400);
     elbow.writeMicroseconds(1500);
     
     Serial.begin(9600);
@@ -51,7 +51,7 @@ void loop() {
 
     // if waiting for command
     if((!moving) && Serial.available()){
-        cmd = Serial.read(); // cmd will be stored in an int.
+        cmd = int(Serial.parseInt()); // cmd will be stored in an int.
         cmd_id = cmd / cmd_key;
         cmd_val = cmd % cmd_key;
 
@@ -76,13 +76,8 @@ void loop() {
                     interval = cmd_val;
                 }
                 break;
-            case _CMD_CHECK_MOVING:
-                if(moving){
-                    Serial.write(1);
-                }
-                else{
-                    Serial.write(0);
-                }
+            case _CMD_GET_QUEUE_MAX:
+                Serial.write(_QUEUE_MAX);
                 break;
         }
 

@@ -6,7 +6,7 @@
 # - outputs motor angles to an Arduino
 
 #!/usr/bin/env python
-import rospy, serial, sys, time
+import rospy, serial, sys, time, struct
 from IK_lib import *
 from geometry_msgs.msg import Point
 
@@ -37,7 +37,7 @@ class IK_Arm():
         self.com_port = com_port
         self.duration = duration # in ms
         self.move_checker = CheckMoving(duration)
-        self.queue_max = 3
+        self.queue_max = 50
     
         self.d1 = 175 # (in mm)
         self.d2 = 175
@@ -46,13 +46,15 @@ class IK_Arm():
 
         if self.com_port is not None:
             self.ser = serial.Serial(com_port, 9800, timeout=1.0)
-            send_cmd(self.GET_QUEUE_MAX, 0)
-            try:
-                self.queue_max = int(self.ser.read(1))
-            except:
-                raise("Error: Couldn't get queue_max from Nano")    
+            self.send_cmd(self.CMD_GET_QUEUE_MAX, 0)
+            '''doot = struct.unpack('@l',self.ser.read(1))
+            print(doot)
+            self.queue_max = int(doot)'''
+            print("[IK_Node] queue_max set to %d"%self.queue_max)
+            self.send_cmd(self.CMD_SET_INTERVAL, duration // self.queue_max)
         else:
             print("WARNING: No com_port specified")
+
     
     def find_intermediate_positions(self, init_pos, final_pos):
         curr_pos = list(init_pos)
@@ -75,7 +77,7 @@ class IK_Arm():
         print("[IK_Node] sending cmd: %d"%cmd)
         if self.ser == None:
             return None
-        self.ser.write(cmd)
+        self.ser.write(struct.pack('@l',cmd))
     
     def callback(self, received_point):
         rospy.loginfo(rospy.get_caller_id() + "I heard %f, %f, %f" %(received_point.x, received_point.y, received_point.z))
@@ -124,6 +126,6 @@ def listener(com_port=None):
 
 if __name__ == '__main__':
     try:
-        listener()
+        listener("/dev/ttyUSB0")
     except rospy.ROSInterruptException:
         pass
