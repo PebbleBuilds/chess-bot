@@ -12,10 +12,11 @@ def cartesian_to_angles(pos, d1, d2):
         return None
     return arm_angles 
     
-def angles_to_us(arm_angles):
+def angles_to_us(arm_angles,servo_min=1000,servo_max=2000):
     (base_angle, shoulder_angle, elbow_angle) = arm_angles 
-    base_us = int(base_angle / 180 * 1000) + 1000
-    shoulder_us = int(shoulder_angle / 180 * 1000) + 1000
-    elbow_us = int(elbow_angle / 180 * 1000) + 1000
+    servo_dev = (servo_max - servo_min)/2
+    base_us = int(base_angle / 180 * servo_dev) + servo_min
+    shoulder_us = int(shoulder_angle / 180 * servo_dev) + servo_min
+    elbow_us = int(elbow_angle / 180 * servo_dev) + servo_min
     us_tuple = (base_us, shoulder_us, elbow_us)
     return us_tuple

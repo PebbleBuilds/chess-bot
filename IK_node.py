@@ -33,6 +33,9 @@ class IK_Arm():
 
         self.CFG_CMD_VAL_PLACES = 4
 
+        self.servo_min_996 = 550
+        self.servo_max_996 = 2450
+
         self.init_pos = [0.0,50.0,50.0]
         self.com_port = com_port
         self.duration = duration # in ms
@@ -47,9 +50,6 @@ class IK_Arm():
         if self.com_port is not None:
             self.ser = serial.Serial(com_port, 9800, timeout=1.0)
             self.send_cmd(self.CMD_GET_QUEUE_MAX, 0)
-            '''doot = struct.unpack('@l',self.ser.read(1))
-            print(doot)
-            self.queue_max = int(doot)'''
             print("[IK_Node] queue_max set to %d"%self.queue_max)
             self.send_cmd(self.CMD_SET_INTERVAL, duration // self.queue_max)
         else:
@@ -77,7 +77,7 @@ class IK_Arm():
         print("[IK_Node] sending cmd: %d"%cmd)
         if self.ser == None:
             return None
-        self.ser.write(struct.pack('@l',cmd))
+        self.ser.write(str(cmd).encode())
     
     def callback(self, received_point):
         rospy.loginfo(rospy.get_caller_id() + "I heard %f, %f, %f" %(received_point.x, received_point.y, received_point.z))

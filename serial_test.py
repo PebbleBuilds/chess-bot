@@ -1,4 +1,4 @@
-import serial, struct
+import serial, struct, time
 
 CMD_SET_BASE = 1
 CMD_SET_SHOULDER = 2
@@ -23,5 +23,8 @@ send_cmd(ser, CMD_SET_BASE, 1000)
 send_cmd(ser, CMD_SET_SHOULDER, 1400)
 send_cmd(ser, CMD_SET_ELBOW, 1500)
 
+while True:
+    time.sleep(10)
+    print("Waiting...")
 
 
