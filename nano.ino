@@ -12,7 +12,7 @@
 #define elbow_pin 5
 #define gripper_pin 3
 
-#define debug_mode true
+#define debug_mode false
 
 #define _LINK_SERVO_MIN 550
 #define _LINK_SERVO_MAX 2450
@@ -33,7 +33,7 @@ Servo base, shoulder, elbow, gripper;
 String cmd_string;
 bool moving = false;
 int cmd, cmd_id, cmd_val, cmd_key, i;
-int interval = 1000; // in milliseconds
+int interval = 100; // in milliseconds
 
 angle_set queue[_QUEUE_MAX];
 int queue_cursor = 0;
@@ -71,24 +71,25 @@ void loop() {
             case _CMD_SET_BASE:
                 if(cmd_val >= _LINK_SERVO_MIN && cmd_val <= _LINK_SERVO_MAX){
                     queue[queue_cursor].base_us = cmd_val;
+                    debug_print("Base set");
                 }
-                debug_print("Base set");
                 break;
             case _CMD_SET_SHOULDER:
                 if(cmd_val >= _LINK_SERVO_MIN && cmd_val <= _LINK_SERVO_MAX){
                     queue[queue_cursor].shoulder_us = cmd_val;
+                    debug_print("Shoulder set");
                 }
-                debug_print("Shoulder set");
                 break;
             case _CMD_SET_ELBOW:
                 if(cmd_val >= _LINK_SERVO_MIN && cmd_val <= _LINK_SERVO_MAX){
                     queue[queue_cursor].elbow_us = cmd_val;
+                    debug_print("Elbow set");
                 }
-                debug_print("Elbow set");
                 break;
             case _CMD_SET_INTERVAL:
                 if(cmd_val > 0){
                     interval = cmd_val;
+                    debug_print("Interval Set");
                 }
                 break;
             case _CMD_GET_QUEUE_MAX:

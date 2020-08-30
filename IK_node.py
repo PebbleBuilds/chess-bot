@@ -40,21 +40,42 @@ class IK_Arm():
         self.com_port = com_port
         self.duration = duration # in ms
         self.move_checker = CheckMoving(duration)
-        self.queue_max = 50
+        self.queue_max = 1
     
         self.d1 = 175 # (in mm)
         self.d2 = 175
 
         self.ser = None
 
-        if self.com_port is not None:
-            self.ser = serial.Serial(com_port, 9800, timeout=1.0)
+        self.ser_init()
+
+        if self.ser is not None:
             self.send_cmd(self.CMD_GET_QUEUE_MAX, 0)
             print("[IK_Node] queue_max set to %d"%self.queue_max)
             self.send_cmd(self.CMD_SET_INTERVAL, duration // self.queue_max)
-        else:
-            print("WARNING: No com_port specified")
+            print("[IK_Node] serial connected")
 
+    def ser_init(self):
+        baud = 9600
+        baseports = ['/dev/ttyUSB', '/dev/ttyACM', 'COM', '/dev/tty.usbmodem1234']
+        self.ser = None
+
+        while not self.ser:
+            for baseport in baseports:
+                if self.ser:
+                    break
+                for i in xrange(0, 64):
+                    try:
+                        port = baseport + str(i)
+                        self.ser = serial.Serial(port, baud, timeout=1)
+                        print("Monitor: Opened " + port + '\r')
+                        break
+                    except:
+                        self.ser = None
+                        pass
+
+            if not self.ser:
+                print("[IK_Node] Couldn't open a serial port.")
     
     def find_intermediate_positions(self, init_pos, final_pos):
         curr_pos = list(init_pos)
@@ -94,13 +115,14 @@ class IK_Arm():
             if arm_angles == None:
                 rospy.loginfo("[IK_Node] Impossible position")
                 return
-            i_us_list.append(angles_to_us(arm_angles))
+            i_us_list.append(angles_to_us(arm_angles,self.servo_min_996,self.servo_max_996))
     
         if not self.move_checker.check_if_done():
             rospy.loginfo("[IK_Node] Arm was still moving - new move message ignored")
             return
     
-        for pos in i_us_list:
+        for i,pos in enumerate(i_us_list):
+            rospy.loginfo("[IK_Node] ### Filling Queue Slot %d" %i)
             self.send_cmd(self.CMD_SET_BASE, pos[0])
             self.send_cmd(self.CMD_SET_SHOULDER, pos[1])
             self.send_cmd(self.CMD_SET_ELBOW, pos[2])
