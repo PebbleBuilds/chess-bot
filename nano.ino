@@ -12,7 +12,7 @@
 #define elbow_pin 5
 #define gripper_pin 3
 
-#define debug_mode false
+#define debug_mode true
 
 #define _LINK_SERVO_MIN 550
 #define _LINK_SERVO_MAX 2450

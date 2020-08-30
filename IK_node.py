@@ -98,7 +98,7 @@ class IK_Arm():
         print("[IK_Node] sending cmd: %d"%cmd)
         if self.ser == None:
             return None
-        self.ser.write(str(cmd).encode())
+        self.ser.write((str(cmd)).encode(encoding='utf-8'))
     
     def callback(self, received_point):
         rospy.loginfo(rospy.get_caller_id() + "I heard %f, %f, %f" %(received_point.x, received_point.y, received_point.z))
@@ -144,7 +144,20 @@ def listener(com_port=None):
     rospy.Subscriber("target_positions", Point, arm.callback)
          
     # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
+
+    while True:
+        try:
+            bytesToRead = arm.ser.inWaiting() # get the amount of bytes available at the input queue
+            if bytesToRead:
+                line = arm.ser.read(bytesToRead) # read the bytes
+                print("Arduino: " + line.strip())
+        except AttributeError:
+            pass
+        except IOError:
+            # Manually raise the error again so it can be caught outside of this method
+            raise IOError() 
+        except KeyboardInterrupt:
+            exit()
 
 if __name__ == '__main__':
     try:
