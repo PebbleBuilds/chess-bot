@@ -5,14 +5,14 @@
 #define _CMD_SET_INTERVAL 4
 #define _CMD_GET_QUEUE_MAX 5
 
-#define _QUEUE_MAX 1
+#define _QUEUE_MAX 5
 
 #define base_pin 9
 #define shoulder_pin 6
 #define elbow_pin 5
 #define gripper_pin 3
 
-#define debug_mode true
+#define debug_mode false
 
 #define _LINK_SERVO_MIN 550
 #define _LINK_SERVO_MAX 2450
@@ -33,7 +33,7 @@ Servo base, shoulder, elbow, gripper;
 String cmd_string;
 bool moving = false;
 int cmd, cmd_id, cmd_val, cmd_key, i;
-int interval = 100; // in milliseconds
+int interval = 10; // in milliseconds
 
 angle_set queue[_QUEUE_MAX];
 int queue_cursor = 0;
@@ -49,7 +49,7 @@ void setup() {
     shoulder.writeMicroseconds(1400);
     elbow.writeMicroseconds(1500);
     
-    Serial.begin(9600);
+    Serial.begin(2400);
     cmd_key = 1;
     for(i=0;i<_CFG_CMD_VAL_PLACES;i++){
       cmd_key = cmd_key * 10;
@@ -60,7 +60,7 @@ void setup() {
 void loop() {
     // if waiting for command
     if((!moving) && Serial.available()){
-        cmd_string = Serial.readString(); // cmd will be stored in an int.
+        cmd_string = Serial.readStringUntil('/');
         cmd = cmd_string.toInt();
         debug_print("Received:");
         debug_print(String(cmd));

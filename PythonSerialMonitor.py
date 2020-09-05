@@ -23,7 +23,7 @@ def send_cmd(ser, cmd_id, cmd_val):
     print("[IK_Node] sending cmd: %d"%cmd)
     if ser == None:
         return None
-    ser.write(str(cmd).encode())
+    ser.write((str(cmd)+'/').encode())
 
 class PythonSerialMonitor():
     def __init__(self):

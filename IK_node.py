@@ -40,7 +40,7 @@ class IK_Arm():
         self.com_port = com_port
         self.duration = duration # in ms
         self.move_checker = CheckMoving(duration)
-        self.queue_max = 1
+        self.queue_max = 50
     
         self.d1 = 175 # (in mm)
         self.d2 = 175
@@ -51,12 +51,13 @@ class IK_Arm():
 
         if self.ser is not None:
             self.send_cmd(self.CMD_GET_QUEUE_MAX, 0)
+            # TODO add a read here to check QUEUE_MAX from arduino
             print("[IK_Node] queue_max set to %d"%self.queue_max)
             self.send_cmd(self.CMD_SET_INTERVAL, duration // self.queue_max)
             print("[IK_Node] serial connected")
 
     def ser_init(self):
-        baud = 9600
+        baud = 2400
         baseports = ['/dev/ttyUSB', '/dev/ttyACM', 'COM', '/dev/tty.usbmodem1234']
         self.ser = None
 
@@ -98,7 +99,7 @@ class IK_Arm():
         print("[IK_Node] sending cmd: %d"%cmd)
         if self.ser == None:
             return None
-        self.ser.write((str(cmd)).encode(encoding='utf-8'))
+        self.ser.write((str(cmd)+'/').encode())
     
     def callback(self, received_point):
         rospy.loginfo(rospy.get_caller_id() + "I heard %f, %f, %f" %(received_point.x, received_point.y, received_point.z))
@@ -149,15 +150,19 @@ def listener(com_port=None):
         try:
             bytesToRead = arm.ser.inWaiting() # get the amount of bytes available at the input queue
             if bytesToRead:
-                line = arm.ser.read(bytesToRead) # read the bytes
+                line = arm.ser.read_until() # read the bytes
                 print("Arduino: " + line.strip())
         except AttributeError:
             pass
-        except IOError:
-            # Manually raise the error again so it can be caught outside of this method
-            raise IOError() 
         except KeyboardInterrupt:
-            exit()
+            import sys, tty, termios
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old_settings)
+            sys.exit(1)
+        except Exception as error:
+            print(error)
+            import sys, tty, termios
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old_settings)
+            sys.exit(1)
 
 if __name__ == '__main__':
     try:
