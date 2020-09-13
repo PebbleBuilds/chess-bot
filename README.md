@@ -12,3 +12,5 @@ So far, the following functionality has been achieved:
 - A rudimentary gripper has been designed, but has not yet been tested.
 - Inverse kinematics C code has been written for the arm's Arduino Nano to convert Cartesian points to joint angles on the robot arm. The Arduino Nano is also able to receive commands corresponding to Cartesian points, and move its end effector in a straight line between these points by computing intermediate positions to move to. 
 - A class for interacting with Stockfish with Python has been written.
+
+CAD is located in a separate repo called chess-bot-CAD. I didn't want to include it in here, because to run ROS I need to clone the code in this repo to my Ubuntu partition, which only has about 20GB of space.
