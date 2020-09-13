@@ -1,4 +1,4 @@
-#chess-bot
+# chess-bot
 
 This is a repo for a chess-playing robot that I am building to brush up on Python, C/C++, OpenCV, and ROS, and to make a fun/educational YouTube video out of. The desired functionality of the robot is as follows:
 
