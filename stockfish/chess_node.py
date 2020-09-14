@@ -11,10 +11,12 @@ class StockfishInterface():
         self.engine.ucinewgame()
         self.board = chess.Board()
 
-    def make_player_move(self, from_square, to_square, promotion=None):
-        move = chess.Move(from_square, to_square, promotion)
+    def make_player_move(self, uci, promotion=None):
+        move = chess.from_uci(uci)
         if move in self.board.legal_moves():
             self.board.push(move)
+            return(True)
+        return(False)
 
     def make_stockfish_move(self):
         if self.engine.isready():
