@@ -1,0 +1,9 @@
+CMD_SET_X = 1
+CMD_SET_Y = 2
+CMD_SET_Z = 3
+CMD_SET_INTERVAL = 4
+
+CFG_CMD_VAL_PLACES = 4
+
+servo_min_996 = 550
+servo_max_996 = 2450

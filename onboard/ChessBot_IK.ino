@@ -130,11 +130,11 @@ void loop() {
     // if waiting for command
     if((!moving) && Serial.available()){
         cmd_string = Serial.readStringUntil('/');
-        cmd = cmd_string.toInt();
-        debug_print("Received:");
+        cmd_id = cmd_string.toInt();
+        debug_print("Received cmd_id:");
         debug_print(String(cmd));
-        cmd_id = cmd / cmd_key;
-        cmd_val = cmd % cmd_key;
+        cmd_string = Serial.readStringUntil('/');
+        cmd_val = cmd_string.toInt();
 
         switch(cmd_id){
             case _CMD_SET_X:

@@ -26,3 +26,6 @@ class StockfishInterface():
             self.board.push(best_move)
             return best_move.uci()
         return "0000"
+
+    def is_game_over(self):
+        return self.board.is_game_over()
