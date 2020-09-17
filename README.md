@@ -1,6 +1,6 @@
 # chess-bot
 
-This is a repo for a chess-playing robot that I am building to brush up on Python, C/C++, OpenCV, and ROS, and to make a fun/educational YouTube video out of. The desired functionality of the robot is as follows:
+This is a repo for a chess-playing robot that I am building to brush up on Python, C/C++, and OpenCV, and to make a fun/educational YouTube video out of. The desired functionality of the robot is as follows:
 
 - A GUI on a laptop will allow a human player to interact with the robot, both by allowing the player to indicate when human moves have been made, and by making funny comments based on the board state
 - When a human move is indicated, a camera plugged into the laptop will take an image of the chessboard and detect all the squares where pieces are. It will compare this new board state to the board state prior to the human move, and determine if a legal move is made. If an illegal move is made, a robot arm will knock over all the chess pieces.
