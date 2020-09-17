@@ -1,3 +1,9 @@
+# ChessBotCore
+# By Rocco Ruan
+# 
+# A class that contains functions to interface with Stockfish through Universal Chess Interface (UCI).
+# An instance of it will be initialized in ChessBotCore.
+
 import chess #python-chess v0.23.8
 
 class StockfishInterface():

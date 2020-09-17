@@ -14,3 +14,5 @@ So far, the following functionality has been achieved:
 - A class for interacting with Stockfish with Python has been written.
 
 CAD is located in a separate repo called chess-bot-CAD. I didn't want to include it in here, because to run ROS I need to clone the code in this repo to my Ubuntu partition, which only has about 20GB of space.
+
+Currently, my plan is to develop everything in Python first, achieve functionality, and port parts to C++ using Boost.python as an exercise.

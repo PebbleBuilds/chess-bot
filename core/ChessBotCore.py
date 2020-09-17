@@ -1,3 +1,11 @@
+# ChessBotCore
+# By Rocco Ruan
+# 
+# A class that runs the core functionality of a chess-playing robot arm, including interfacing with an arm controller object,
+# a computer vision object, and a chess engine object powered by Stockfish. This class is in particular responsible for the
+# "state-machine"-like behaviour of the chess robot arm, as well as the user interface.
+
+
 from StockfishInterface import StockfishInterface
 from string import ascii_lowercase
 import CV_Interface

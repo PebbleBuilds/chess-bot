@@ -1,3 +1,15 @@
+/*
+
+ChessBot_IK.ino
+By Rocco Ruan
+
+This code takes in serial commands in the form of two integers encoded in a string, corresponding to a command type and command value, resepctively.
+These commands can be used to set the next destination of a 4-DoF robot arm. Once this is set, the Arduino will use inverse kinematics to compute
+a straight path to the target, and set servomotors to follow this path over a set duration. Commands can also be written to change the duration
+of movement, open or close a gripper, etc.
+
+*/
+
 #include <Servo.h>
 #include <math.h>
 #define _CMD_SET_X 1
@@ -15,6 +27,7 @@
 
 #define debug_mode true
 
+// my servomotors take in non-standard pulse widths for some reason, so setting this was necessary.
 #define _LINK_SERVO_MIN 550.0
 #define _LINK_SERVO_MAX 2450.0
 #define _LINK_SERVO_RANGE 1900.0
@@ -47,10 +60,13 @@ Vector3 init_pos, final_pos;
 Vector3 int_pos_array[_QUEUE_MAX];
 int array_cursor = 0;
 
+
+// A method for printing debug messages to the serial monitor when the code is uploaded with debug_mode = true
 void debug_print(String msg){
     if(debug_mode){Serial.println(msg);}
 }
 
+// A method that converts a Cartesian point to pulse widths for the robot arm's servomotors
 int cartesian_to_us(Vector3 cartesian, Vector3 * us){
     double r, base, shoulder, elbow;
 
@@ -72,6 +88,7 @@ int cartesian_to_us(Vector3 cartesian, Vector3 * us){
     return 1;
 }
 
+// A method that generates a straight path of points between the end effector's initial and final position, in pulse widths
 int find_intermediate_positions(Vector3 init_pos, Vector3 final_pos, Vector3 * int_pos_array, int array_len){
     Vector3 curr_pos, curr_us, increment;
     int idx = 0;
@@ -127,7 +144,7 @@ void setup() {
 }
 
 void loop() {
-    // if waiting for command
+    // if not moving, check for serial commands
     if((!moving) && Serial.available()){
         cmd_string = Serial.readStringUntil('/');
         cmd_id = cmd_string.toInt();
@@ -138,7 +155,7 @@ void loop() {
 
         switch(cmd_id){
             case _CMD_SET_X:
-                if(cmd_val >= 10 && cmd_val <= 200){
+                if(cmd_val >= 10 && cmd_val <= 200){ //bounds arbitrarily set for now
                     final_pos.x_or_base = cmd_val;
                     debug_print("X set");
                 }
@@ -176,7 +193,7 @@ void loop() {
             }
         }
 
-    // if moving
+    // if moving, step through path and block until finished
     if(moving){
         debug_print("Begin moving");
         base.writeMicroseconds(int_pos_array[array_cursor].x_or_base);

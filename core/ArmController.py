@@ -1,4 +1,23 @@
+# ChessBotCore
+# By Rocco Ruan
+# 
+# A class that contains functions for specific types of moves (captures, regular moves, or promotions), which are to be
+# called by ChessBotCore.This class will then send serial commands to ChessBot_IK.ino on the Arduino Nano to execute those moves.
+
 from constants import *
+
+class CheckMoving():
+    def __init__(self, duration):
+        self.duration = duration
+        self.last_time = time.time() * 1000
+
+    def start_timing(self):
+        self.last_time = time.time() * 1000
+
+    def check_if_done(self):
+        if time.time() * 1000 - self.last_time + 500 > self.duration:
+            return True
+        return False
 
 class ArmController():
     def __init__(self, com_port=None, duration=3000):
@@ -7,8 +26,10 @@ class ArmController():
         self.duration = duration # in ms
         self.move_checker = CheckMoving(duration)
 
-        self.ser = None
+        self.piece_grab_z = -20 # z position in mm that the arm should be in to grab a piece
+        self.clearance_z = 0 # z position in mm that the arm should be in to move around without hitting stuff
 
+        self.ser = None
         self.ser_init()
 
         if self.ser is not None:
@@ -42,3 +63,7 @@ class ArmController():
         if self.ser == None:
             return None
         self.ser.write((str(cmd_id)+'/'+str(cmd_val)+'/').encode())
+
+    def remove_piece(self, piece_location):
+        (piece_x, piece_y) = piece_location
+        
