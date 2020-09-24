@@ -13,7 +13,7 @@
 using namespace cv;
 using namespace std;
 
-class Chess_CV_Test {
+struct Chess_CV_Test {
 	Mat image;
 
 	int iLowH = 0;
@@ -26,18 +26,27 @@ class Chess_CV_Test {
 	int iHighV = 255;
 
 	int display_image(Mat, String, double);
-	int process();
+	void process();
 	int create_control_window();
+	void trackbar_callback(int, void*);
 
 	Chess_CV_Test(Mat input_img) {
-		Mat image = input_img;
+		image = input_img;
+		cout << "[CV_Test] Received image." << endl;
 		create_control_window();
-		process();
+		cout << "[CV_Test] Created control window." << endl;
+		display_image(image, "Image", 0.2);
 	}
 };
 
+
+//void Chess_CV_Test::trackbar_callback(int trackbar_pos, void* userdata) {
+//	process();
+//}
+
 int Chess_CV_Test::display_image(Mat image, String windowName, double scale) {
 	// Display image
+	cout << "[CV_Test] Displaying image." << endl;
 	namedWindow(windowName); // Create a window
 	moveWindow(windowName, 40, 30);
 	Mat resized_image;
@@ -48,26 +57,34 @@ int Chess_CV_Test::display_image(Mat image, String windowName, double scale) {
 	return 0;
 }
 
-int Chess_CV_Test::process() {
+void Chess_CV_Test::process() {
+	cout << "[CV_Test] Beginning processing." << endl;
 	Mat imgHSV;
 	cvtColor(image, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+	cout << "[CV_Test] Converted to HSV." << endl;
 
 	Mat imgThresholded;
 	inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+	cout << "[CV_Test] Thresholded." << endl;
 
 	//morphological opening (remove small objects from the foreground)
 	erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 	dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 
+	cout << "[CV_Test] Morphological opening complete." << endl;
+
 	//morphological closing (fill small holes in the foreground)
 	dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 	erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 
+	cout << "[CV_Test] Morphological closing complete." << endl;
+
 	Mat image_to_display;
 	cvtColor(imgHSV, image_to_display, COLOR_HSV2BGR);
 
+	cout << "[CV_Test] Converting back to HSV." << endl;
+
 	String windowName = "Thresholded Image";
-	destroyWindow(windowName);
 	display_image(image_to_display, windowName, 0.15);
 }
 
@@ -75,14 +92,14 @@ int Chess_CV_Test::create_control_window() {
 	namedWindow("Control"); //create a window called "Control"
 
 	//Create trackbars in "Control" window
-	createTrackbar("LowH", "Control", &iLowH, 179, process); //Hue (0 - 179)
-	createTrackbar("HighH", "Control", &iHighH, 179, process);
+	createTrackbar("LowH", "Control", &iLowH, 179); //Hue (0 - 179)
+	createTrackbar("HighH", "Control", &iHighH, 179);
 
-	createTrackbar("LowS", "Control", &iLowS, 255, process); //Saturation (0 - 255)
-	createTrackbar("HighS", "Control", &iHighS, 255, process);
+	createTrackbar("LowS", "Control", &iLowS, 255); //Saturation (0 - 255)
+	createTrackbar("HighS", "Control", &iHighS, 255);
 
-	createTrackbar("LowV", "Control", &iLowV, 255, process); //Value (0 - 255)
-	createTrackbar("HighV", "Control", &iHighV, 255, process);
+	createTrackbar("LowV", "Control", &iLowV, 255); //Value (0 - 255)
+	createTrackbar("HighV", "Control", &iHighV, 255);
 
 	return 0;
 }
@@ -92,16 +109,18 @@ int Chess_CV_Test::create_control_window() {
 int main(int argc, char** argv)
 {
 	// Read the image file
-	Mat image = imread("./chess_cv_test.jpg");
+	Mat main_image = imread("./chess_cv_test.jpg");
 
 	// Check for failure
-	if (image.empty())
+	if (main_image.empty())
 	{
-		cout << "Could not open or find the image" << endl;
+		cout << "Could not open or find the main_image" << endl;
 		cin.get(); //wait for any key press
 		return -1;
 	}
 
-	Chess_CV_Test test = new Chess_CV_Test(image);
-
+	Chess_CV_Test test(main_image);
+	while (true) {
+		test.process();
+	}
 }
