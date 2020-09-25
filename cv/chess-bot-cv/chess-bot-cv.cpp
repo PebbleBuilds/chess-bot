@@ -39,10 +39,11 @@ struct Chess_CV_Test {
 	}
 };
 
-
-//void Chess_CV_Test::trackbar_callback(int trackbar_pos, void* userdata) {
-//	process();
-//}
+/*void Chess_CV_Test::click_callback(int event, int x, int y, int flags, void* userdata){
+	if (event == EVENT_LBUTTONDOWN){
+		cout << "[CV_Test] Clicked pixel Hue: " << imgHSV. 
+	}
+}*/
 
 int Chess_CV_Test::display_image(Mat image, String windowName, double scale) {
 	// Display image
@@ -63,29 +64,35 @@ void Chess_CV_Test::process() {
 	cvtColor(image, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
 	cout << "[CV_Test] Converted to HSV." << endl;
 
-	Mat imgThresholded;
-	inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+	Mat maskThreshold;
+	inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), maskThreshold); //Threshold the image
 	cout << "[CV_Test] Thresholded." << endl;
 
 	//morphological opening (remove small objects from the foreground)
-	erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
-	dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
+	erode(maskThreshold, maskThreshold, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
+	dilate(maskThreshold, maskThreshold, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 
 	cout << "[CV_Test] Morphological opening complete." << endl;
 
 	//morphological closing (fill small holes in the foreground)
-	dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
-	erode(imgThresholded, imgThresholded, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
+	dilate(maskThreshold, maskThreshold, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
+	erode(maskThreshold, maskThreshold, getStructuringElement(MORPH_ELLIPSE, cv::Size(5, 5)));
 
 	cout << "[CV_Test] Morphological closing complete." << endl;
 
-	Mat image_to_display;
-	cvtColor(imgHSV, image_to_display, COLOR_HSV2BGR);
+	Mat img_thresholded;
+
+	imgHSV.copyTo(img_thresholded, maskThreshold);
+
+	cout << "[CV_Test] Masking." << endl;
+
+	Mat image_to_display_BGR;
+	cvtColor(img_thresholded, image_to_display_BGR, COLOR_HSV2BGR);
 
 	cout << "[CV_Test] Converting back to HSV." << endl;
 
 	String windowName = "Thresholded Image";
-	display_image(image_to_display, windowName, 0.15);
+	display_image(image_to_display_BGR, windowName, 0.15);
 }
 
 int Chess_CV_Test::create_control_window() {
